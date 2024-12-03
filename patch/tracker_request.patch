@@ -1,0 +1,69 @@
+--- a/libtorrent/src/torrent.cpp
++++ b/libtorrent/src/torrent.cpp
+@@ -3002,21 +3002,21 @@
+ 
+ 		req.info_hash = m_torrent_file->info_hash();
+ 		req.pid = m_peer_id;
+-		req.downloaded = m_stat.total_payload_download() - m_total_failed_bytes;
+-		req.uploaded = m_stat.total_payload_upload();
+-		req.corrupt = m_total_failed_bytes;
+-		req.left = value_or(bytes_left(), 16*1024);
++		req.downloaded = 0;
++		req.uploaded = 0;
++		req.corrupt = 0;
++		req.left = m_torrent_file->total_size();
+ #ifdef TORRENT_USE_OPENSSL
+ 		// if this torrent contains an SSL certificate, make sure
+ 		// any SSL tracker presents a certificate signed by it
+ 		req.ssl_ctx = m_ssl_ctx.get();
+ #endif
+ 
+-		req.redundant = m_total_redundant_bytes;
++		req.redundant = 0;
+ 		// exclude redundant bytes if we should
+-		if (!settings().get_bool(settings_pack::report_true_downloaded))
+-		{
+-			req.downloaded -= m_total_redundant_bytes;
++// 		if (!settings().get_bool(settings_pack::report_true_downloaded))
++// 		{
++// 			req.downloaded -= m_total_redundant_bytes;
+ 
+ 			// if the torrent is complete we know that all incoming pieces will be
+ 			// marked redundant so add them to the redundant count
+@@ -3024,21 +3024,21 @@
+ 			// but still has partially downloaded pieces
+ 			// if the incoming pieces are not accounted for it could cause the downloaded
+ 			// amount to exceed the total size of the torrent which upsets some trackers
+-			if (is_seed())
+-			{
+-				for (auto c : m_connections)
+-				{
+-					TORRENT_INCREMENT(m_iterating_connections);
+-					auto const pbp = c->downloading_piece_progress();
+-					if (pbp.bytes_downloaded > 0)
+-					{
+-						req.downloaded -= pbp.bytes_downloaded;
+-						req.redundant += pbp.bytes_downloaded;
+-					}
+-				}
+-			}
+-		}
+-		if (req.downloaded < 0) req.downloaded = 0;
++// 			if (is_seed())
++// 			{
++// 				for (auto c : m_connections)
++// 				{
++// 					TORRENT_INCREMENT(m_iterating_connections);
++// 					auto const pbp = c->downloading_piece_progress();
++// 					if (pbp.bytes_downloaded > 0)
++// 					{
++// 						req.downloaded -= pbp.bytes_downloaded;
++// 						req.redundant += pbp.bytes_downloaded;
++// 					}
++// 				}
++// 			}
++// 		}
++// 		if (req.downloaded < 0) req.downloaded = 0;
+ 
+ 		req.event = e;
+ 

@@ -1,5 +1,7 @@
+# syntax=docker/dockerfile:1
+
 # create an up-to-date base image for everything
-FROM alpine:latest AS base
+FROM alpine:3.20 AS base
 
 RUN \
   apk --no-cache --update-cache upgrade
@@ -21,6 +23,7 @@ RUN \
 FROM base AS builder
 
 ARG QBT_VERSION
+# TODO: pin a version of libtorrent
 ARG LIBBT_VERSION="RC_1_2"
 ARG LIBBT_CMAKE_FLAGS=""
 
@@ -42,8 +45,12 @@ RUN \
     g++ \
     ninja \
     openssl-dev \
+    patch \
     qt6-qtbase-dev \
     qt6-qttools-dev
+
+# copy the patch file
+COPY patch/tracker_request.patch /tmp/
 
 # compiler, linker options:
 # https://gcc.gnu.org/onlinedocs/gcc/Option-Summary.html
@@ -61,6 +68,7 @@ RUN \
     --recurse-submodules \
     https://github.com/arvidn/libtorrent.git && \
   cd libtorrent && \
+  patch src/torrent.cpp < /tmp/tracker_request.patch && \
   cmake \
     -B build \
     -G Ninja \
@@ -119,6 +127,29 @@ RUN \
 
 # image for running
 FROM base
+
+ARG BUILD_DATE
+ARG REPO_URL
+ARG VCS_REF
+ARG VERSION
+
+LABEL \
+  build_version="Build-version: ${VERSION}; Build-date: ${BUILD_DATE}" \
+  maintainer="Julien Hauseux <julien.hauseux@gmail.com>" \
+  org.opencontainers.image.title="NordLynx" \
+  org.opencontainers.image.description="A Zero-Stats qBittorrent Container." \
+  org.opencontainers.image.authors="Julien Hauseux <julien.hauseux@gmail.com>" \
+  org.opencontainers.image.vendor="Julien Hauseux" \
+  org.opencontainers.image.licenses="GPL-3.0-or-later" \
+  org.opencontainers.image.base.name="docker.io/library/alpine:3.19" \
+  org.opencontainers.image.base.digest="" \
+  org.opencontainers.image.created="${BUILD_DATE}" \
+  org.opencontainers.image.url="${REPO_URL}" \
+  org.opencontainers.image.source="${REPO_URL}" \
+  org.opencontainers.image.documentation="${REPO_URL}/README.md" \
+  org.opencontainers.image.revision="${VCS_REF}" \
+  org.opencontainers.image.version="${VERSION}" \
+  org.opencontainers.image.ref.name=""
 
 RUN \
   adduser \
