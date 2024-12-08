@@ -23,14 +23,17 @@ RUN \
 FROM base AS builder
 
 ARG QBT_VERSION
-# TODO: pin a version of libtorrent
-ARG LIBBT_VERSION="RC_1_2"
+ARG LIBBT_VERSION
 ARG LIBBT_CMAKE_FLAGS=""
 
 # check environment variables
 RUN \
   if [ -z "${QBT_VERSION}" ]; then \
     echo 'Missing QBT_VERSION variable. Check your command line arguments.' && \
+    exit 1 ; \
+  fi && \
+  if [ -z "${LIBBT_VERSION}" ]; then \
+    echo 'Missing LIBBT_VERSION variable. Check your command line arguments.' && \
     exit 1 ; \
   fi
 
@@ -129,27 +132,26 @@ RUN \
 FROM base
 
 ARG BUILD_DATE
-ARG REPO_URL
 ARG VCS_REF
 ARG VERSION
 
 LABEL \
-  build_version="Build-version: ${VERSION}; Build-date: ${BUILD_DATE}" \
+  build_version="Build version: ${VERSION}; Build date: ${BUILD_DATE}" \
   maintainer="Julien Hauseux <julien.hauseux@gmail.com>" \
-  org.opencontainers.image.title="NordLynx" \
+  org.opencontainers.image.title="qBittorrent" \
   org.opencontainers.image.description="A Zero-Stats qBittorrent Container." \
+  org.opencontainers.image.version="${VERSION}" \
   org.opencontainers.image.authors="Julien Hauseux <julien.hauseux@gmail.com>" \
   org.opencontainers.image.vendor="Julien Hauseux" \
   org.opencontainers.image.licenses="GPL-3.0-or-later" \
-  org.opencontainers.image.base.name="docker.io/library/alpine:3.19" \
+  org.opencontainers.image.base.name="alpine:3.20" \
   org.opencontainers.image.base.digest="" \
   org.opencontainers.image.created="${BUILD_DATE}" \
-  org.opencontainers.image.url="${REPO_URL}" \
-  org.opencontainers.image.source="${REPO_URL}" \
-  org.opencontainers.image.documentation="${REPO_URL}/README.md" \
   org.opencontainers.image.revision="${VCS_REF}" \
-  org.opencontainers.image.version="${VERSION}" \
-  org.opencontainers.image.ref.name=""
+  org.opencontainers.image.ref.name="${VCS_REF}" \
+  org.opencontainers.image.url="https://github.com/arkandias/docker-qbittorrent" \
+  org.opencontainers.image.source="https://github.com/arkandias/docker-qbittorrent" \
+  org.opencontainers.image.documentation="https://github.com/arkandias/docker-qbittorrent/README.md"
 
 RUN \
   adduser \
