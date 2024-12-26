@@ -1,7 +1,5 @@
-# syntax=docker/dockerfile:1
-
 # create an up-to-date base image for everything
-FROM alpine:3.20 AS base
+FROM alpine:latest AS base
 
 RUN \
   apk --no-cache --update-cache upgrade
@@ -13,27 +11,29 @@ RUN \
     bash \
     curl \
     doas \
+    libcrypto3 \
+    libssl3 \
     python3 \
     qt6-qtbase \
     qt6-qtbase-sqlite \
     tini \
-    tzdata
+    tzdata \
+    zlib
 
 # image for building
 FROM base AS builder
 
-ARG QBT_VERSION
-ARG LIBBT_VERSION
-ARG LIBBT_CMAKE_FLAGS=""
+ARG QBT_VERSION \
+    BOOST_VERSION_MAJOR="1" \
+    BOOST_VERSION_MINOR="86" \
+    BOOST_VERSION_PATCH="0" \
+    LIBBT_VERSION="RC_1_2" \
+    LIBBT_CMAKE_FLAGS=""
 
 # check environment variables
 RUN \
   if [ -z "${QBT_VERSION}" ]; then \
     echo 'Missing QBT_VERSION variable. Check your command line arguments.' && \
-    exit 1 ; \
-  fi && \
-  if [ -z "${LIBBT_VERSION}" ]; then \
-    echo 'Missing LIBBT_VERSION variable. Check your command line arguments.' && \
     exit 1 ; \
   fi
 
@@ -42,15 +42,16 @@ RUN \
 # https://git.alpinelinux.org/aports/tree/community/qbittorrent/APKBUILD
 RUN \
   apk add \
-    boost-dev \
     cmake \
     git \
     g++ \
+    make \
     ninja \
     openssl-dev \
     patch \
     qt6-qtbase-dev \
-    qt6-qttools-dev
+    qt6-qttools-dev \
+    zlib-dev
 
 # copy the patch file
 COPY patch/tracker_request.patch /tmp/
@@ -62,6 +63,12 @@ COPY patch/tracker_request.patch /tmp/
 ENV CFLAGS="-pipe -fstack-clash-protection -fstack-protector-strong -fno-plt -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_GLIBCXX_ASSERTIONS" \
     CXXFLAGS="-pipe -fstack-clash-protection -fstack-protector-strong -fno-plt -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_GLIBCXX_ASSERTIONS" \
     LDFLAGS="-gz -Wl,-O1,--as-needed,--sort-common,-z,now,-z,pack-relative-relocs,-z,relro"
+
+# prepare boost
+RUN \
+  wget -O boost.tar.gz "https://archives.boost.io/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_${BOOST_VERSION_MAJOR}_${BOOST_VERSION_MINOR}_${BOOST_VERSION_PATCH}.tar.gz" && \
+  tar -xf boost.tar.gz && \
+  mv boost_* boost
 
 # build libtorrent
 RUN \
@@ -80,6 +87,7 @@ RUN \
     -DCMAKE_CXX_STANDARD=20 \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
+    -DBOOST_ROOT=/boost \
     -Ddeprecated-functions=OFF \
     $LIBBT_CMAKE_FLAGS && \
   cmake --build build -j $(nproc) && \
@@ -104,6 +112,7 @@ RUN \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
+    -DBOOST_ROOT=/boost \
     -DGUI=OFF && \
   cmake --build build -j $(nproc) && \
   cmake --install build
@@ -114,6 +123,7 @@ RUN \
 # record compile-time Software Bill of Materials (sbom)
 RUN \
   printf "Software Bill of Materials for building qbittorrent-nox\n\n" >> /sbom.txt && \
+  echo "boost $BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH" >> /sbom.txt && \
   cd libtorrent && \
   echo "libtorrent-rasterbar git $(git rev-parse HEAD)" >> /sbom.txt && \
   cd .. && \

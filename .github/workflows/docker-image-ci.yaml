@@ -20,8 +20,8 @@ jobs:
     steps:
       - name: Check tag
         run: |
-          if [[ ! "${GITHUB_REF_NAME}" =~ ^"$(echo "$QBT_VERSION" | sed 's/\./\\./g')"-[0-9]+$ ]]; then
-            echo "Invalid tag format. Expected: ${QBT_VERSION}-NUMBER (e.g., ${QBT_VERSION}-0)" >> "${GITHUB_STEP_SUMMARY}"
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^$(echo -n "$QBT_VERSION" | sed 's/\./\\./g')-[0-9]+$ ]]; then
+            echo "Invalid tag format '${GITHUB_REF_NAME}'. Expected: ${QBT_VERSION}-NUMBER (e.g., ${QBT_VERSION}-0)" >> "${GITHUB_STEP_SUMMARY}"
             exit 1
           fi
 
