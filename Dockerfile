@@ -114,7 +114,7 @@ RUN \
     -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
     -DBOOST_ROOT=/boost \
     -DGUI=OFF && \
-  cmake --build build -j $(nproc) && \
+  cmake --build build -j $(nproc) --verbose && \
   cmake --install build
 
 RUN \
