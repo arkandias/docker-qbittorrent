@@ -9,7 +9,7 @@ permissions:
   packages: write
 
 env:
-  QBT_VERSION: "5.0.3"
+  QBT_VERSION: "5.0.4"
   LIBBT_VERSION: "v1.2.20"
   GHCR_REPOSITORY: ghcr.io/arkandias/qbittorrent
   DOCKERHUB_REPOSITORY: jhauseux/qbittorrent
