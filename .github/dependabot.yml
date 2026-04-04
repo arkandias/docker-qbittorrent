@@ -7,6 +7,5 @@ updates:
       github-actions:
         patterns:
           - "*"
-    commit-message: "Bump GitHub action versions"
     schedule:
       interval: "monthly"
