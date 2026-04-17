@@ -118,13 +118,17 @@ https://github.com/qbittorrent/qBittorrent/issues
         You can set the environment variable `TZ` to your preferred value.
       * You can change the User ID (UID) and Group ID (GID) of the `qbittorrent-nox` process by setting
         environment variables `PUID` and `PGID` respectively. By default they are both set to `1000`. \
-        Note that you will need to remove `--read-only` flag (when using Docker) or set
+        Note that:
+        1. You will need to remove `--read-only` flag (when using Docker) or set
         `read_only: false` (when using Docker Compose) as these settings are incompatible with each other.
+        2. This setting has no effect when running the image in rootless mode.
       * You can set additional group ID (AGID) of the `qbittorrent-nox` process by setting the
         environment variable `PAGID`. For example: `10000,10001`, this will set the process to be in
         two (secondary) groups `10000` and `10001`. By default there is no additional group. \
-        Note that you will need to remove `--read-only` flag (when using Docker) or set
+        Note that:
+        1. You will need to remove `--read-only` flag (when using Docker) or set
         `read_only: false` (when using Docker Compose) as they are incompatible with it.
+        2. This setting has no effect when running the image in rootless mode.
       * It is possible to set the umask of the `qbittorrent-nox` process by setting the
         environment variable `UMASK`. By default it uses the default from Alpine Linux.
       * You can list the compile-time Software Bill of Materials (sbom) with the following command:
