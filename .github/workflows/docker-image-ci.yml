@@ -2,14 +2,14 @@ name: Docker Image CI
 
 on:
   push:
-    tags: [ '[0-9].[0-9].[0-9]-[0-9]+' ]
+    tags: ["[0-9].[0-9].[0-9]-[0-9]+"]
 
 permissions:
   contents: read
   packages: write
 
 env:
-  QBT_VERSION: "5.2.0"
+  QBT_VERSION: "5.2.1"
   LIBBT_VERSION: "v1.2.20"
   GHCR_REPOSITORY: ghcr.io/arkandias/qbittorrent
 
