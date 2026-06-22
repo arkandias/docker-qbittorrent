@@ -38,6 +38,9 @@ if [ ! -f "$qbtConfigFile" ]; then
 Session\DefaultSavePath=$downloadsPath
 Session\Port=6881
 Session\TempPath=$downloadsPath/temp
+Session\TempPathEnabled=true
+[Meta]
+MigrationVersion=9999
 [Preferences]
 WebUI\Port=8080
 EOF
